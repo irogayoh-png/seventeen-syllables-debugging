@@ -1,0 +1,100 @@
+"""Seventeen Syllables of Debugging.
+
+A program that writes one haiku about debugging to
+``$MAKEFUN_OUTPUT_DIR/entry.txt`` (``/output/entry.txt`` in the grader).
+
+The haiku is fixed and hand-shaped: three lines in the 5-7-5 shape,
+at most 200 characters, plain text. It is written out exactly as it
+stands here, every run, so two runs of this program produce the same
+file. No clock, no randomness, no network, no input is read.
+
+The poem:
+
+    The breakpoint holds still
+    three a.m. log lines confess
+    my fix was the bug
+
+Why these seventeen syllables: the centre picture is concrete -- a
+breakpoint frozen at three in the morning, log lines giving up the
+truth -- and the last line turns the whole poem: the fix itself was
+the bug. Every word is doing work; nothing is filler added to reach
+the count.
+"""
+
+import os
+import sys
+
+# The haiku, one line per row. Kept as data, written out verbatim.
+HAIKU = (
+    "The breakpoint holds still",
+    "three a.m. log lines confess",
+    "my fix was the bug",
+)
+
+# Syllable counts the ear gives to spellings the naive vowel-group
+# rule gets wrong. "a.m." is spoken as two syllables, "ay-em".
+EXCEPTIONS = {
+    "a.m.": 2,
+}
+
+VOWELS = "aeiouy"
+
+
+def count_syllables(word):
+    """Count the syllables of one word by its vowel groups.
+
+    Consecutive vowels form one group (``break`` is one, ``point``
+    is one). A trailing silent ``e`` does not start a group of its
+    own. Every word keeps at least one syllable.
+    """
+    cleaned = word.strip(".,;:!?\"'()").lower()
+    if not cleaned:
+        return 0
+    if cleaned in EXCEPTIONS:
+        return EXCEPTIONS[cleaned]
+    groups = 0
+    previous_was_vowel = False
+    for letter in cleaned:
+        is_vowel = letter in VOWELS
+        if is_vowel and not previous_was_vowel:
+            groups += 1
+        previous_was_vowel = is_vowel
+    if cleaned.endswith("e") and groups > 1:
+        groups -= 1
+    return max(groups, 1)
+
+
+def line_syllables(line):
+    """Syllables in one line: the sum over its words."""
+    return sum(count_syllables(word) for word in line.split())
+
+
+def build_entry():
+    """Render the haiku as the entry text, one trailing newline."""
+    return "\n".join(HAIKU) + "\n"
+
+
+def main():
+    text = build_entry()
+    counts = [line_syllables(line) for line in HAIKU]
+    print("lines:", len(HAIKU), file=sys.stderr)
+    print("syllables:", counts, file=sys.stderr)
+    print("chars:", len(text), file=sys.stderr)
+    if counts != [5, 7, 5]:
+        print("haiku is not 5-7-5, refusing to write", file=sys.stderr)
+        return 1
+    if not 1 <= len(text) <= 200:
+        print("entry is outside 1-200 characters, refusing to write",
+              file=sys.stderr)
+        return 1
+    output_dir = os.environ.get("MAKEFUN_OUTPUT_DIR", "/output")
+    os.makedirs(output_dir, exist_ok=True)
+    path = os.path.join(output_dir, "entry.txt")
+    with open(path, "w", encoding="utf-8") as handle:
+        handle.write(text)
+    print("wrote", path, file=sys.stderr)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
