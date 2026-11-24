@@ -8,17 +8,19 @@ at most 200 characters, plain text. It is written out exactly as it
 stands here, every run, so two runs of this program produce the same
 file. No clock, no randomness, no network, no input is read.
 
-The poem:
+The poem (version 2 -- the first version's breakpoint at three in
+the morning was the field's most crowded picture, so this one turns
+to git blame instead, a fresher and just as concrete image, while
+keeping the same last-line turn):
 
-    The breakpoint holds still
-    three a.m. log lines confess
+    Git blame names just me
+    the one line I wrote last spring
     my fix was the bug
 
-Why these seventeen syllables: the centre picture is concrete -- a
-breakpoint frozen at three in the morning, log lines giving up the
-truth -- and the last line turns the whole poem: the fix itself was
-the bug. Every word is doing work; nothing is filler added to reach
-the count.
+Why these seventeen syllables: the centre picture is concrete --
+git blame naming one author, one line from last spring -- and the
+last line turns the whole poem: the fix itself was the bug. Every
+word is doing work; nothing is filler added to reach the count.
 """
 
 import os
@@ -26,8 +28,8 @@ import sys
 
 # The haiku, one line per row. Kept as data, written out verbatim.
 HAIKU = (
-    "The breakpoint holds still",
-    "three a.m. log lines confess",
+    "Git blame names just me",
+    "the one line I wrote last spring",
     "my fix was the bug",
 )
 
@@ -40,18 +42,35 @@ EXCEPTIONS = {
 VOWELS = "aeiouy"
 
 
+# A final "-es" after one of these is its own syllable ("horses" is
+# two); after any other consonant the "e" is silent ("lines" is one).
+SIBILANTS = ("s", "x", "z", "ch", "sh")
+
+
 def count_syllables(word):
     """Count the syllables of one word by its vowel groups.
 
     Consecutive vowels form one group (``break`` is one, ``point``
     is one). A trailing silent ``e`` does not start a group of its
-    own. Every word keeps at least one syllable.
+    own, and neither does the ``e`` of a final ``-es`` after a
+    consonant that is not a sibilant. Abbreviations keep their
+    spoken count through EXCEPTIONS, checked before any dots are
+    stripped. Every word keeps at least one syllable.
     """
+    raw = word.lower()
+    if raw in EXCEPTIONS:
+        return EXCEPTIONS[raw]
     cleaned = word.strip(".,;:!?\"'()").lower()
     if not cleaned:
         return 0
     if cleaned in EXCEPTIONS:
         return EXCEPTIONS[cleaned]
+    if cleaned.endswith("es") and len(cleaned) > 2:
+        before = cleaned[:-2]
+        if not before.endswith(SIBILANTS):
+            cleaned = before + "s"
+    elif cleaned.endswith("e"):
+        cleaned = cleaned[:-1]
     groups = 0
     previous_was_vowel = False
     for letter in cleaned:
@@ -59,8 +78,6 @@ def count_syllables(word):
         if is_vowel and not previous_was_vowel:
             groups += 1
         previous_was_vowel = is_vowel
-    if cleaned.endswith("e") and groups > 1:
-        groups -= 1
     return max(groups, 1)
 
 

@@ -8,13 +8,13 @@ A program that writes one haiku about debugging — three lines in the
 5-7-5 syllable shape — to `entry.txt`. The poem is fixed and
 hand-shaped, so every run writes the same seventeen syllables:
 
-> The breakpoint holds still
-> three a.m. log lines confess
+> Git blame names just me
+> the one line I wrote last spring
 > my fix was the bug
 
-The centre picture is concrete — a breakpoint frozen at three in the
-morning, log lines giving up the truth — and the last line turns the
-poem: the fix itself was the bug.
+The centre picture is concrete — git blame naming one author, one
+line from last spring — and the last line turns the poem: the fix
+itself was the bug.
 
 ## Run it
 
