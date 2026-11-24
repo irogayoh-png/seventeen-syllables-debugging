@@ -92,7 +92,15 @@ def main():
     path = os.path.join(output_dir, "entry.txt")
     with open(path, "w", encoding="utf-8") as handle:
         handle.write(text)
-    print("wrote", path, file=sys.stderr)
+    # Read the file back and confirm it holds exactly the haiku.
+    # A silent short write must fail the run, not pass the gate
+    # with a truncated poem.
+    with open(path, "r", encoding="utf-8") as handle:
+        written = handle.read()
+    if written != text:
+        print("written file differs from the haiku", file=sys.stderr)
+        return 1
+    print("wrote and verified", path, file=sys.stderr)
     return 0
 
 
